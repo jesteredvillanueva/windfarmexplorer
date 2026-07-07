@@ -998,6 +998,22 @@ function farmScene(f){
   </svg></div>`;
 }
 const drawer=document.getElementById('drawer');
+
+/* Enter browser fullscreen (same as pressing F11) on the Start tap — same
+   approach as the NLR app. Works on Chrome for Android/tablets and laptop
+   browsers. Skipped when running as an installed PWA (the manifest's
+   "display": "fullscreen" already handles it), and fails silently anywhere
+   it's unsupported. */
+function enterFullscreen(){
+  try{
+    if (window.matchMedia('(display-mode: fullscreen), (display-mode: standalone)').matches) return;
+    if (document.fullscreenElement || document.webkitFullscreenElement) return;
+    const el = document.documentElement;
+    const req = el.requestFullscreen || el.webkitRequestFullscreen;
+    if (req){ const p = req.call(el); if (p && p.catch) p.catch(()=>{}); }
+  }catch(e){}
+}
+window.enterFullscreen=enterFullscreen;
 const welcome=document.getElementById('welcome');
 let playerName='Explorer';
 function onNameType(){
@@ -1005,6 +1021,7 @@ function onNameType(){
   document.getElementById('greetName').textContent = v || 'Explorer';
 }
 function startExploring(){
+  enterFullscreen();
   var v=(document.getElementById('nameInput').value||'').trim();
   playerName = v || 'Explorer';
   try{localStorage.setItem('windyName', playerName);}catch(e){}
