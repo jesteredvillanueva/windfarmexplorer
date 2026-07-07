@@ -1,7 +1,7 @@
 {
-  "name": "ACEN Wind Energy Explorer",
+  "name": "DOE Energy Museum — Wind Energy Explorer",
   "short_name": "Wind Explorer",
-  "description": "A fun, kid-friendly map for exploring the Philippines' wind farms and clean energy.",
+  "description": "A fun, kid-friendly map for exploring the Philippines' wind farms and clean energy. Department of Energy — Energy Museum.",
   "start_url": ".",
   "scope": ".",
   "display": "standalone",

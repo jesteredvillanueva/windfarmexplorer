@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes">
-<title>ACEN · Wind Energy Explorer for Kids</title>
+<title>DOE Energy Museum · Wind Energy Explorer</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Lexend:wght@400;500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -11,7 +11,7 @@
 <meta name="theme-color" content="#0c121c">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="ACEN Wind Explorer">
+<meta name="apple-mobile-web-app-title" content="Wind Explorer">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
 <style>
@@ -1108,6 +1108,14 @@ function closeDetails(){            /* X button: close, then celebrate if every 
   if(found.size===NF && !celebrated){celebrated=true;setTimeout(winAll,300);}
 }
 window.closeP=closeP; window.closeDetails=closeDetails; window.goHome=goHome; window.dismissWelcome=dismissWelcome; window.toggleSound=toggleSound;
+
+/* Tap anywhere on the map (sea or islands) to close the info panel.
+   Taps on a farm pin or its label still open that farm instead. */
+document.querySelector('.mapwrap').addEventListener('click',function(e){
+  if(!drawer.classList.contains('open'))return;
+  if(e.target.closest('.farm,.flabel'))return;
+  closeDetails();
+});
 
 /* friendly progress toast */
 let toastT;
