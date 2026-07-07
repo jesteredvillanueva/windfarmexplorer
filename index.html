@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>DOE Energy Museum · Wind Energy Explorer</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -26,7 +26,7 @@
     --disp:'Fredoka',system-ui,sans-serif; --body:'Lexend','TT Hoves','Nunito',system-ui,sans-serif;
   }
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
-  html,body{height:100%;}
+  html,body{height:100%;touch-action:manipulation;overscroll-behavior:none;}
   body{font-family:var(--body);color:var(--txt);overflow:hidden;
     background:
       radial-gradient(760px 460px at 84% 4%, rgba(255,232,150,.8), transparent 60%),
@@ -1278,9 +1278,10 @@ function fitModals(){
 }
 function resetZoom(){
   var vp=document.querySelector('meta[name="viewport"]');
+  var LOCKED='width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover';
   if(vp){
-    vp.setAttribute('content','width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no');
-    setTimeout(function(){ vp.setAttribute('content','width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes'); fitModals(); pinReset(); }, 350);
+    vp.setAttribute('content',LOCKED);
+    setTimeout(function(){ vp.setAttribute('content',LOCKED); fitModals(); pinReset(); }, 350);
   }
   window.scrollTo(0,0);
   try{ sWhoosh(); }catch(e){}
@@ -1326,6 +1327,23 @@ function showWind(which){
   document.getElementById('wfacts').innerHTML=w.facts.map(f=>`<div class="wfact ${w.cls}">${f}</div>`).join('');
 }
 window.openWinds=openWinds; window.closeWinds=closeWinds; window.showWind=showWind;
+
+/* ===== KIOSK ZOOM LOCK =====
+   Keeps the app pinned at 1:1 so kids can't pinch or double-tap the view
+   off-screen. Works with the viewport meta (min/max scale 1, no user scaling):
+   - gesturestart/change: iOS Safari pinch (it ignores user-scalable=no)
+   - multi-touch touchmove: Android pinch fallback
+   - dblclick + ctrl/cmd+wheel: double-tap and desktop-browser zoom */
+['gesturestart','gesturechange','gestureend'].forEach(function(ev){
+  document.addEventListener(ev,function(e){e.preventDefault();},{passive:false});
+});
+document.addEventListener('touchmove',function(e){
+  if(e.touches.length>1)e.preventDefault();
+},{passive:false});
+document.addEventListener('dblclick',function(e){e.preventDefault();},{passive:false});
+window.addEventListener('wheel',function(e){
+  if(e.ctrlKey||e.metaKey)e.preventDefault();
+},{passive:false});
 
 window.addEventListener('load', function(){
     navigator.serviceWorker.register('sw.js').catch(function(){});

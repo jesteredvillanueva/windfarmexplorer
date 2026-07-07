@@ -1,6 +1,6 @@
 /* ACEN Wind Explorer service worker — offline support for the PWA.
    Bump CACHE whenever you ship a new index.html so devices fetch the update. */
-const CACHE = 'acen-wind-explorer-v39';
+const CACHE = 'acen-wind-explorer-v40';
 const SHELL = [
   './',
   './index.html',
