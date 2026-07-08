@@ -1,6 +1,6 @@
 /* ACEN Wind Explorer service worker — offline support for the PWA.
    Bump CACHE whenever you ship a new index.html so devices fetch the update. */
-const CACHE = 'acen-wind-explorer-v41';
+const CACHE = 'acen-wind-explorer-v42';
 const SHELL = [
   './',
   './index.html',
@@ -25,19 +25,7 @@ self.addEventListener('activate', (e) => {
 self.addEventListener('fetch', (e) => {
   const req = e.request;
   if (req.method !== 'GET') return;
-  const url = new URL(req.url);
-
-  // Google Fonts: cache them at runtime so text still looks right offline.
-  if (url.hostname.includes('fonts.googleapis.com') || url.hostname.includes('fonts.gstatic.com')) {
-    e.respondWith(
-      caches.open(CACHE).then(async (cache) => {
-        const hit = await cache.match(req);
-        const net = fetch(req).then((res) => { cache.put(req, res.clone()); return res; }).catch(() => hit);
-        return hit || net;
-      })
-    );
-    return;
-  }
+  // Fonts are now embedded in index.html — no font CDN handling needed.
 
   // App files: serve from cache first, fall back to network.
   // For page navigations, fall back to the cached app shell when offline.
