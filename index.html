@@ -27,6 +27,27 @@
     --green:#7ED957; --amiBlue:#5BC8F0;
     --disp:'Fredoka',system-ui,sans-serif; --body:'Lexend','TT Hoves','Nunito',system-ui,sans-serif;
   }
+  /* ===== Offline-ready status pill (setup reassurance for museum staff) ===== */
+  #offlinePill{
+    position:fixed; left:50%; bottom:18px; transform:translateX(-50%);
+    z-index:99999; display:flex; align-items:center; gap:9px;
+    padding:10px 18px; border-radius:999px;
+    font-family:var(--disp); font-weight:600; font-size:16px; letter-spacing:.2px; white-space:nowrap;
+    color:#4a3600; background:var(--amber); border:2px solid rgba(255,255,255,.7);
+    box-shadow:0 8px 24px rgba(6,47,150,.28);
+    transition:opacity .45s ease, transform .45s ease, background .35s ease, color .35s ease;
+    max-width:calc(100vw - 28px); cursor:pointer; user-select:none;
+  }
+  #offlinePill .orDot{ width:12px; height:12px; border-radius:50%; background:currentColor; flex:0 0 auto; }
+  #offlinePill[data-state="preparing"]{ background:var(--amber); color:#4a3600; }
+  #offlinePill[data-state="preparing"] .orDot{ animation:orPulse 1s ease-in-out infinite; }
+  #offlinePill[data-state="stalled"]{ background:#F2A73B; color:#4a2a00; }
+  #offlinePill[data-state="stalled"] .orDot{ animation:orPulse 1.3s ease-in-out infinite; }
+  #offlinePill[data-state="ready"]{ background:var(--green); color:#123a10; }
+  #offlinePill[data-state="ready"] .orDot{ animation:none; }
+  #offlinePill.orHide{ opacity:0; pointer-events:none; transform:translateX(-50%) translateY(10px); }
+  @keyframes orPulse{ 0%,100%{ opacity:1; transform:scale(1);} 50%{ opacity:.3; transform:scale(.62);} }
+  @media (prefers-reduced-motion: reduce){ #offlinePill .orDot{ animation:none !important; } }
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;touch-action:manipulation;overscroll-behavior:none;}
   body{font-family:var(--body);color:var(--txt);overflow:hidden;
@@ -541,6 +562,10 @@
 </style>
 </head>
 <body>
+<div id="offlinePill" data-state="preparing" role="status" aria-live="polite" title="Tap to dismiss">
+  <span class="orDot" aria-hidden="true"></span>
+  <span class="orLabel">Preparing offline copy…</span>
+</div>
 <div class="sky" id="sky"></div>
 <div class="toast" id="toast"></div>
 <button id="resetBtn" class="resetview" onclick="resetZoom()" title="Reset the view to normal size" aria-label="Reset view"><span class="ri">🔄</span>Reset view</button>
@@ -1365,7 +1390,47 @@ window.addEventListener('wheel',function(e){
 },{passive:false});
 
 window.addEventListener('load', function(){
-    navigator.serviceWorker.register('sw.js').catch(function(){});
+    if(!('serviceWorker' in navigator)) return;
+
+    var pill  = document.getElementById('offlinePill');
+    var label = pill ? pill.querySelector('.orLabel') : null;
+    var settled = false, stallTimer = null;
+
+    function setState(state){
+      if(!pill) return;
+      if(settled && state !== 'ready') return;        // never downgrade a confirmed green
+      pill.setAttribute('data-state', state);
+      if(state === 'preparing'){ label.textContent = 'Preparing offline copy…'; }
+      else if(state === 'stalled'){ label.textContent = 'Still caching — keep Wi-Fi on'; }
+      else if(state === 'ready'){
+        label.textContent = 'Offline-ready \u2713 \u00B7 safe to disconnect';
+        settled = true; clearTimeout(stallTimer);
+        setTimeout(function(){ pill.classList.add('orHide'); }, 6000);   // auto-fade after 6s
+      }
+    }
+
+    if(pill){
+      pill.classList.remove('orHide');
+      setState('preparing');
+      stallTimer = setTimeout(function(){ if(!settled) setState('stalled'); }, 20000);
+      pill.addEventListener('click', function(){ pill.classList.add('orHide'); });
+    }
+
+    // The service worker broadcasts this only after caching is genuinely confirmed.
+    navigator.serviceWorker.addEventListener('message', function(e){
+      if(e.data && e.data.type === 'CACHE_READY') setState('ready');
+    });
+
+    // A reloaded / already-installed page asks the active worker to re-confirm.
+    function askController(){
+      if(navigator.serviceWorker.controller){
+        navigator.serviceWorker.controller.postMessage({ type: 'CHECK_CACHE' });
+      }
+    }
+
+    navigator.serviceWorker.register('sw.js').then(askController).catch(function(){});
+    navigator.serviceWorker.addEventListener('controllerchange', askController);
+    if(navigator.serviceWorker.ready){ navigator.serviceWorker.ready.then(askController); }
   });
 </script>
 </body>
