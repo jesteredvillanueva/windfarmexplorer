@@ -151,7 +151,7 @@
     font-size:1rem;padding:10px 14px;border-width:2px;} .instructbar .ie{font-size:1.25rem;}}
 
   /* ---------- TOTAL WIND POWER CARD (right side of the map) ---------- */
-  .totalpower{position:absolute;right:18px;top:64px;z-index:20;width:230px;text-align:center;
+  .totalpower{position:absolute;right:18px;top:36%;transform:translateY(-50%);z-index:20;width:230px;text-align:center;
     background:linear-gradient(180deg,#ffffff,#eaf3ff);border:3px solid var(--yellow);
     border-radius:20px;padding:14px 16px;box-shadow:0 10px 26px rgba(4,20,60,.35);}
   .totalpower .tpv{font-family:var(--disp);font-weight:700;font-size:2rem;color:#1F53C6;line-height:1;}
@@ -159,7 +159,7 @@
   .totalpower .tpl{font-family:var(--disp);font-weight:600;font-size:.78rem;letter-spacing:.08em;
     color:#476074;text-transform:uppercase;margin-top:7px;line-height:1.35;}
   @media(max-width:1100px){.totalpower{width:200px;} .totalpower .tpv{font-size:1.7rem;}}
-  @media(max-width:760px){.totalpower{right:10px;top:52px;width:150px;padding:9px 10px;border-width:2px;}
+  @media(max-width:760px){.totalpower{right:10px;top:52px;transform:none;width:150px;padding:9px 10px;border-width:2px;}
     .totalpower .tpv{font-size:1.3rem;} .totalpower .tpv small{font-size:.82rem;}
     .totalpower .tpl{font-size:.62rem;margin-top:4px;}}
 
@@ -559,6 +559,34 @@
   .sunfacts{display:flex;flex-direction:column;gap:9px;text-align:left;}
   .sfact{background:#fff;border:2px solid rgba(31,83,198,.16);border-left:6px solid var(--yellow);border-radius:14px;padding:11px 13px;color:#173b6b;font-weight:600;line-height:1.4;font-size:.98rem;}
   .sunback{margin-top:16px;width:100%;}
+  /* ===== Client updates: relocated stats, sun 'Tap me!', explore-more button ===== */
+  /* wind-data stats relocated into the right-side total-power card */
+  .totalpower .tpstats{justify-content:center;gap:16px;margin-top:12px;padding-top:12px;
+    border-top:2px dashed rgba(31,83,198,.25);}
+  .totalpower .tpstats .v{color:#1F53C6;font-size:1.15rem;}
+  .totalpower .tpstats .v small{color:#2f6bb8;}
+  .totalpower .tpstats .l{color:#5d7184;}
+  @media(max-width:760px){ .totalpower .tpstats{gap:9px;margin-top:8px;padding-top:8px;}
+    .totalpower .tpstats .v{font-size:.9rem;} .totalpower .tpstats .l{font-size:.5rem;} }
+
+  /* 'Tap me!' hint bubble on the sun character */
+  .sunTap{position:absolute;left:50%;bottom:-20px;transform:translateX(-50%);
+    background:var(--blue);color:#fff;font-family:var(--disp);font-weight:700;font-size:1.1rem;letter-spacing:.2px;
+    padding:6px 18px;border-radius:999px;white-space:nowrap;border:2.5px solid #fff;
+    box-shadow:0 5px 13px rgba(6,47,150,.4);pointer-events:none;animation:sunTapBob 1.6s ease-in-out infinite;}
+  .sunTap::after{content:"";position:absolute;top:-10px;left:50%;transform:translateX(-50%);
+    border-left:8px solid transparent;border-right:8px solid transparent;border-bottom:8px solid var(--blue);}
+  @keyframes sunTapBob{0%,100%{transform:translateX(-50%) translateY(0);}50%{transform:translateX(-50%) translateY(-3px);}}
+  @media(max-width:760px){ .sunTap{font-size:.92rem;bottom:-16px;padding:4px 13px;} }
+  @media (prefers-reduced-motion: reduce){ .sunTap{animation:none;} }
+
+  /* 'Explore other wind farms' button at the bottom of each trivia panel */
+  .exploreMore{display:block;width:100%;margin:20px 0 6px;padding:15px 18px;border:none;border-radius:16px;
+    font-family:var(--disp);font-weight:700;font-size:1.05rem;color:#fff;cursor:pointer;
+    background:linear-gradient(180deg,var(--blue-lt),var(--blue));box-shadow:0 6px 16px rgba(6,47,150,.32);
+    transition:transform .12s ease, box-shadow .12s ease;}
+  .exploreMore:hover{transform:translateY(-2px);box-shadow:0 9px 22px rgba(6,47,150,.42);}
+  .exploreMore:active{transform:translateY(0);box-shadow:0 4px 12px rgba(6,47,150,.3);}
 </style>
 </head>
 <body>
@@ -579,7 +607,6 @@
       <div class="k">Wind Energy Explorer</div>
     </div>
     <div style="display:flex;align-items:center;gap:16px;justify-content:flex-end;">
-      <div class="stats" id="stats"></div>
       <button class="sound" id="soundBtn" onclick="toggleSound()" title="Sound on/off">🔊</button>
     </div>
   </div>
@@ -646,7 +673,7 @@
       <ellipse cx="46" cy="68" rx="5" ry="3.6" fill="#FF9E80" opacity=".85"/>
       <ellipse cx="74" cy="68" rx="5" ry="3.6" fill="#FF9E80" opacity=".85"/>
       <path d="M50 67 q10 11 20 0" fill="none" stroke="#1F53C6" stroke-width="3.6" stroke-linecap="round"/>
-      </svg></div>
+      </svg><span class="sunTap" aria-hidden="true">Tap me!</span></div>
     <div class="intro" id="intro">
       <div class="iclouds" aria-hidden="true">
         <span class="icloud" style="width:96px;height:34px;top:7%;left:9%"></span>
@@ -698,6 +725,7 @@
     <div class="totalpower" id="totalPower">
       <div class="tpv"><span id="tpNum">400+</span><small>Megawatts</small></div>
       <div class="tpl">Total Wind Power in the Philippines</div>
+      <div class="tpstats stats" id="stats"></div>
     </div>
 
     <!-- BIG INSTRUCTIONS (client request: lower-left, clear of the map labels) -->
@@ -888,7 +916,7 @@ const PH_WIND_MW=427; // DOE 2025: national installed wind capacity (the 5 farms
 const totHomes=FARMS.reduce((a,f)=>a+f.homes,0);
 document.getElementById('stats').innerHTML=`
   <div class="stat"><div class="v">${NF}</div><div class="l">Wind Farms</div></div>
-  <div class="stat"><div class="v">${fmt(totHomes)}+</div><div class="l">Homes Powered</div></div>`;
+  <div class="stat"><div class="v">${(Math.round(totHomes/1000)*1000).toLocaleString()}+</div><div class="l">Homes Powered</div></div>`;
 /* Total wind power card on the map (spelled out for kids) */
 { var _tp=document.getElementById('tpNum'); if(_tp)_tp.textContent=(Math.floor(PH_WIND_MW/100)*100)+'+'; }
 
@@ -1140,8 +1168,10 @@ function openFarm(id){
     <div class="sec"><div class="st">🌍 Helping Our Planet</div>
       ${f.planet.map(p=>`<div class="card plant">🌿 ${p}</div>`).join('')}</div>
     <div class="sec"><div class="st">💡 Did You Know?</div>
-      ${f.dyk.map(p=>`<div class="card dyk">${p}</div>`).join('')}</div>`;
+      ${f.dyk.map(p=>`<div class="card dyk">${p}</div>`).join('')}</div>
+    <button class="exploreMore" onclick="closeP()">🗺️ Explore other wind farms</button>`;
   drawer.classList.add('open');
+  drawer.scrollTop=0;   // always show the top of the new farm's info, even if the previous one was scrolled down
   requestAnimationFrame(()=>{const b=document.getElementById('powbar');if(b)b.style.width=Math.max(8,pct)+'%';});
 }
 function closeP(){drawer.classList.remove('open');
